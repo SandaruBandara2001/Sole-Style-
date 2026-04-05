@@ -1,0 +1,5 @@
+{
+  "name": "Sole & Style",
+  "description": "A high-end editorial shoe store with Firebase integration, user authentication, wishlist, and an admin inventory dashboard.",
+  "requestFramePermissions": []
+}
