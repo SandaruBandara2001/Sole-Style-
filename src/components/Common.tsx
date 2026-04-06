@@ -24,12 +24,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) 
     >
       {/* Image Container */}
       <div className="relative aspect-[4/5] overflow-hidden bg-brand-gray-50">
-        <img
-          src={product.image}
-          alt={product.name}
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out"
-        />
+        <Link to={`/product/${product.id}`} className="block w-full h-full">
+          <img
+            src={product.image}
+            alt={product.name}
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out"
+          />
+        </Link>
 
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
@@ -81,11 +83,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) 
           <div className="flex items-center gap-2">
             {product.isSale ? (
               <>
-                <span className="text-sm font-bold">${product.salePrice}</span>
-                <span className="text-xs text-brand-gray-400 line-through">${product.price}</span>
+                <span className="text-sm font-bold">Rs. {product.salePrice}</span>
+                <span className="text-xs text-brand-gray-400 line-through">Rs. {product.price}</span>
               </>
             ) : (
-              <span className="text-sm font-bold">${product.price}</span>
+              <span className="text-sm font-bold">Rs. {product.price}</span>
             )}
           </div>
         </div>

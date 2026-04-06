@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useCart } from "../CartContext";
 import { useUser } from "../UserContext";
 import { db } from "../firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export const Cart = () => {
   const [step, setStep] = useState<"cart" | "checkout" | "success">("cart");
@@ -45,7 +45,9 @@ export const Cart = () => {
 
     setIsProcessing(true);
     try {
+      const orderRef = doc(collection(db, "orders"));
       const orderData = {
+        id: orderRef.id,
         userId: user.uid,
         items: cart.map(item => ({
           productId: item.id,
@@ -59,11 +61,12 @@ export const Cart = () => {
         total: total,
         status: "pending",
         shippingAddress: shippingInfo,
+        email: user.email,
         createdAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, "orders"), orderData);
-      setOrderId(docRef.id);
+      await setDoc(orderRef, orderData);
+      setOrderId(orderRef.id);
       setStep("success");
       clearCart();
     } catch (error) {
@@ -108,7 +111,7 @@ export const Cart = () => {
   }
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-brand-white">
+    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-brand-white">
       <div className="container mx-auto px-6">
         {/* Step Indicator */}
         <div className="flex items-center justify-center mb-20">
@@ -166,7 +169,7 @@ export const Cart = () => {
                                 Size: {item.selectedSize} / Color: {item.selectedColor}
                               </p>
                             </div>
-                            <p className="font-display font-bold text-xl">${(item.salePrice || item.price) * item.quantity}</p>
+                            <p className="font-display font-bold text-xl">Rs. {(item.salePrice || item.price) * item.quantity}</p>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center border border-brand-gray-200">
@@ -294,19 +297,19 @@ export const Cart = () => {
               <div className="space-y-4 pt-4 border-t border-brand-gray-200">
                 <div className="flex justify-between text-sm">
                   <span className="text-brand-gray-500">Subtotal</span>
-                  <span className="font-bold">${subtotal.toFixed(2)}</span>
+                  <span className="font-bold">Rs. {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-brand-gray-500">Shipping</span>
-                  <span className="font-bold">${shipping.toFixed(2)}</span>
+                  <span className="font-bold">Rs. {shipping.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-brand-gray-500">Estimated Tax</span>
-                  <span className="font-bold">${tax.toFixed(2)}</span>
+                  <span className="font-bold">Rs. {tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xl pt-4 border-t border-brand-gray-200">
                   <span className="font-display font-black uppercase tracking-tighter">Total</span>
-                  <span className="font-display font-black">${total.toFixed(2)}</span>
+                  <span className="font-display font-black">Rs. {total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -345,7 +348,7 @@ export const Cart = () => {
                   <Truck className="w-5 h-5 text-brand-gray-400" />
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold uppercase tracking-widest">Free Shipping</span>
-                    <span className="text-[10px] text-brand-gray-400">On all orders over $150</span>
+                    <span className="text-[10px] text-brand-gray-400">On all orders over Rs. 150</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">

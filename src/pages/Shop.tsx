@@ -13,7 +13,7 @@ export const Shop = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"newest" | "price-low" | "price-high">("newest");
   const [maxPrice, setMaxPrice] = useState(500);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const categoryFilter = searchParams.get("category");
@@ -22,15 +22,28 @@ export const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
-      const data = await getProducts(categoryFilter, specialFilter);
-      setProducts(data);
+      // Fetch all products to have the full category list available
+      const data = await getProducts();
+      setAllProducts(data);
       setIsLoading(false);
     };
     fetchProducts();
-  }, [categoryFilter, specialFilter]);
+  }, []);
 
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...allProducts];
+
+    // Category Filter
+    if (categoryFilter) {
+      result = result.filter(p => p.category === categoryFilter);
+    }
+
+    // Special Filter (New/Sale)
+    if (specialFilter === "new") {
+      result = result.filter(p => p.isNew);
+    } else if (specialFilter === "sale") {
+      result = result.filter(p => p.isSale);
+    }
 
     // Price Filter
     result = result.filter(p => (p.salePrice || p.price) <= maxPrice);
@@ -49,12 +62,15 @@ export const Shop = () => {
     });
 
     return result;
-  }, [products, sortBy, maxPrice]);
+  }, [allProducts, categoryFilter, specialFilter, sortBy, maxPrice]);
 
-  const categories = ["Performance", "Lifestyle", "Outdoor"];
+  const categories = useMemo(() => {
+    const cats = new Set(allProducts.map(p => p.category));
+    return Array.from(cats).sort();
+  }, [allProducts]);
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-brand-white">
+    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-brand-white">
       <div className="container mx-auto px-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
@@ -165,8 +181,8 @@ export const Shop = () => {
                   onChange={(e) => setMaxPrice(parseInt(e.target.value))}
                 />
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span>$0</span>
-                  <span>Up to ${maxPrice}</span>
+                  <span>Rs. 0</span>
+                  <span>Up to Rs. {maxPrice}</span>
                 </div>
               </div>
             </div>

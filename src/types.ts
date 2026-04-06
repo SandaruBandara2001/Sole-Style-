@@ -1,3 +1,10 @@
+export interface ColorVariant {
+  name: string;
+  hex: string;
+  images: string[];
+  sizes: string[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -8,6 +15,7 @@ export interface Product {
   description: string;
   sizes: string[];
   colors: { name: string; hex: string }[];
+  variants?: ColorVariant[];
   isNew?: boolean;
   isSale?: boolean;
   salePrice?: number;
@@ -63,6 +71,25 @@ export const PRODUCTS: Product[] = [
     colors: [
       { name: "Forest Green", hex: "#228B22" },
       { name: "Earth Brown", hex: "#5D4037" }
+    ],
+    variants: [
+      {
+        name: "Forest Green",
+        hex: "#228B22",
+        images: [
+          "https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=2071&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1520639889457-77513f669584?q=80&w=1974&auto=format&fit=crop"
+        ],
+        sizes: ["8", "9", "10", "11"]
+      },
+      {
+        name: "Earth Brown",
+        hex: "#5D4037",
+        images: [
+          "https://images.unsplash.com/photo-1541597471942-4929efa060db?q=80&w=1974&auto=format&fit=crop"
+        ],
+        sizes: ["7", "8", "9", "10", "11", "12"]
+      }
     ],
     isSale: true,
     salePrice: 168

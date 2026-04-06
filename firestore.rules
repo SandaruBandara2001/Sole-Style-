@@ -56,8 +56,9 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() &&
         (
-          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
-          (request.auth.token.email == "sandarujbandara@gmail.com")
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          (request.auth.token.email == "sandarujbandara@gmail.com" && request.auth.token.email_verified == true)
         );
     }
 
@@ -68,8 +69,12 @@ service cloud.firestore {
     function isValidProduct(data) {
       return data.keys().hasAll(['id', 'name', 'category', 'price', 'image', 'description']) &&
              data.id is string && data.name is string && data.name.size() < 100 &&
-             data.category is string && data.price is number && data.price > 0 &&
-             data.image is string && data.description is string && data.description.size() < 2000;
+             data.category is string && data.price is number && data.price >= 0 &&
+             data.image is string && data.description is string && data.description.size() < 5000 &&
+             (!('variants' in data) || data.variants is list) &&
+             (!('images' in data) || data.images is list) &&
+             (!('sizes' in data) || data.sizes is list) &&
+             (!('colors' in data) || data.colors is list);
     }
 
     function isValidUser(data) {
@@ -83,7 +88,7 @@ service cloud.firestore {
       return data.keys().hasAll(['id', 'userId', 'items', 'total', 'status', 'createdAt']) &&
              data.id is string && data.userId is string && data.items is list &&
              data.total is number && data.total >= 0 &&
-             data.status in ['pending', 'shipped', 'delivered'] &&
+             data.status in ['pending', 'processing', 'shipped', 'delivered'] &&
              data.createdAt is timestamp;
     }
 
@@ -93,7 +98,8 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin() && isValidProduct(request.resource.data);
+      allow create, update: if isAdmin() && isValidProduct(request.resource.data);
+      allow delete: if isAdmin();
     }
 
     match /users/{userId} {

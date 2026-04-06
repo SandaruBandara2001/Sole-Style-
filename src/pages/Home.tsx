@@ -1,70 +1,167 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "motion/react";
-import { ArrowRight, Play, Star, Quote } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { ArrowRight, Play, Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "../lib/utils";
 import { Product } from "../types";
 import { ProductCard, Button } from "../components/Common";
 import { getProducts } from "../services/productService";
 
 export const Home = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
-      const data = await getProducts(null, 'new');
-      setNewArrivals(data.slice(0, 4));
+      const data = await getProducts();
+      setAllProducts(data);
+      setNewArrivals(data.filter(p => p.isNew).slice(0, 4));
       setIsLoading(false);
     };
     fetchProducts();
   }, []);
 
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(allProducts.map(p => p.category))).filter(Boolean);
+    return cats.slice(0, 3).map(cat => {
+      const productWithCat = allProducts.find(p => p.category === cat);
+      return {
+        name: cat,
+        img: productWithCat?.image || "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=2070&auto=format&fit=crop",
+        count: `${allProducts.filter(p => p.category === cat).length} Items`
+      };
+    });
+  }, [allProducts]);
+
+  const heroSlides = [
+    {
+      id: 1,
+      tag: "The New Air-Lite",
+      title: "Move With Intention",
+      description: "Performance-driven design for the kinetic athlete.",
+      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop",
+      link: "/shop"
+    },
+    {
+      id: 2,
+      tag: "Limited Edition",
+      title: "Pure Aesthetics",
+      description: "High-tech materials meet minimalist design.",
+      image: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?q=80&w=2012&auto=format&fit=crop",
+      link: "/shop?category=Performance"
+    },
+    {
+      id: 3,
+      tag: "Lifestyle Archive",
+      title: "Comfort Redefined",
+      description: "Silhouettes that blend into your daily rhythm.",
+      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=1974&auto=format&fit=crop",
+      link: "/shop?category=Lifestyle"
+    }
+  ];
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative h-screen min-h-[700px] flex items-center overflow-hidden bg-brand-gray-50">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1556906781-9a412961c28c?q=80&w=1974&auto=format&fit=crop"
-            alt="Hero"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/30 to-transparent" />
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+            className="absolute inset-0 z-0"
+          >
+            <img
+              src={heroSlides[currentSlide].image}
+              alt={heroSlides[currentSlide].title}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/40 to-transparent" />
+          </motion.div>
+        </AnimatePresence>
 
         <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="max-w-2xl"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="max-w-2xl"
+            >
+              <span className="inline-block bg-brand-black text-brand-white text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 mb-8">
+                {heroSlides[currentSlide].tag}
+              </span>
+              <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.9] mb-8 drop-shadow-sm">
+                {heroSlides[currentSlide].title.split(" ").map((word, i) => (
+                  <React.Fragment key={i}>
+                    {i === 2 ? <><br /><span className="text-brand-black/80 stroke-brand-black stroke-1" style={{ WebkitTextStroke: "1px black" }}>{word}</span> </> : word + " "}
+                  </React.Fragment>
+                ))}
+              </h1>
+              <p className="text-lg text-brand-gray-900 font-sans max-w-md mb-10 leading-relaxed font-medium">
+                {heroSlides[currentSlide].description}
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link to={heroSlides[currentSlide].link}>
+                  <Button size="lg" className="group">
+                    Shop The Archive
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Carousel Navigation Arrows */}
+        <div className="absolute inset-y-0 left-6 flex items-center z-20">
+          <button 
+            onClick={prevSlide}
+            className="p-3 bg-white/10 backdrop-blur-md border border-white/20 text-brand-black hover:bg-brand-black hover:text-brand-white transition-all rounded-full"
           >
-            <span className="inline-block bg-brand-black text-brand-white text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 mb-8">
-              The New Air-Lite
-            </span>
-            <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.9] mb-8 drop-shadow-sm">
-              Engineered <br />
-              <span className="text-brand-black/80 stroke-brand-black stroke-1" style={{ WebkitTextStroke: "1px black" }}>For The</span> <br />
-              Kinetic Athlete
-            </h1>
-            <p className="text-lg text-brand-gray-900 font-sans max-w-md mb-10 leading-relaxed font-medium">
-              Experience the archive of performance-driven design. Curated for those who move with intention.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/shop">
-                <Button size="lg" className="group">
-                  Shop The Archive
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Button variant="outline" size="lg" className="flex items-center gap-2">
-                <Play className="w-4 h-4 fill-current" />
-                Watch Film
-              </Button>
-            </div>
-          </motion.div>
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="absolute inset-y-0 right-6 flex items-center z-20">
+          <button 
+            onClick={nextSlide}
+            className="p-3 bg-white/10 backdrop-blur-md border border-white/20 text-brand-black hover:bg-brand-black hover:text-brand-white transition-all rounded-full"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-10 right-10 flex gap-4 z-20">
+          {heroSlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              className={cn(
+                "w-12 h-1 transition-all duration-500",
+                currentSlide === i ? "bg-brand-black w-20" : "bg-brand-gray-300 hover:bg-brand-gray-400"
+              )}
+            />
+          ))}
         </div>
 
         {/* Scroll Indicator */}
@@ -99,37 +196,39 @@ export const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: "Performance", img: "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=2070&auto=format&fit=crop", count: "12 Items" },
-              { name: "Lifestyle", img: "https://images.unsplash.com/photo-1512374382149-4332c6c021f1?q=80&w=1966&auto=format&fit=crop", count: "24 Items" },
-              { name: "Outdoor", img: "https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=2071&auto=format&fit=crop", count: "08 Items" },
-            ].map((cat, i) => (
-              <motion.div
-                key={cat.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                viewport={{ once: true }}
-                className="group relative aspect-[3/4] overflow-hidden bg-brand-gray-100"
-              >
-                <img
-                  src={cat.img}
-                  alt={cat.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute bottom-8 left-8 right-8 text-brand-white">
-                  <span className="text-[10px] font-bold uppercase tracking-widest mb-2 block opacity-80">{cat.count}</span>
-                  <h3 className="text-3xl font-display font-black uppercase tracking-tighter mb-4">{cat.name}</h3>
-                  <Link to={`/shop?category=${cat.name}`}>
-                    <Button variant="outline" size="sm" className="border-brand-white text-brand-white hover:bg-brand-white hover:text-brand-black">
-                      Explore
-                    </Button>
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
+            {categories.length > 0 ? (
+              categories.map((cat, i) => (
+                <motion.div
+                  key={cat.name}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  className="group relative aspect-[3/4] overflow-hidden bg-brand-gray-100"
+                >
+                  <img
+                    src={cat.img}
+                    alt={cat.name}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-8 left-8 right-8 text-brand-white">
+                    <span className="text-[10px] font-bold uppercase tracking-widest mb-2 block opacity-80">{cat.count}</span>
+                    <h3 className="text-3xl font-display font-black uppercase tracking-tighter mb-4">{cat.name}</h3>
+                    <Link to={`/shop?category=${cat.name}`}>
+                      <Button variant="outline" size="sm" className="border-brand-white text-brand-white hover:bg-brand-white hover:text-brand-black">
+                        Explore
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-3 py-20 text-center border-2 border-dashed border-brand-gray-100">
+                <p className="text-brand-gray-400 font-bold uppercase tracking-widest text-xs">No categories found in archive</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

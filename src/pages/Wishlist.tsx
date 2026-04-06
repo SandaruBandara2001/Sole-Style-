@@ -40,14 +40,14 @@ export const Wishlist = () => {
 
   if (loading || userLoading) {
     return (
-      <div className="pt-32 pb-24 min-h-screen flex items-center justify-center">
+      <div className="pt-24 lg:pt-32 pb-24 min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-black"></div>
       </div>
     );
   }
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-brand-white">
+    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-brand-white">
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="space-y-4">

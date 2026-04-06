@@ -46,7 +46,10 @@ export const Header = () => {
     <header
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-all duration-500",
-        isScrolled ? "bg-white/80 backdrop-blur-md py-4 shadow-soft" : "bg-transparent py-6"
+        "bg-white py-4 shadow-soft", // Default (Mobile)
+        isScrolled 
+          ? "lg:bg-white/80 lg:backdrop-blur-md lg:py-4 lg:shadow-soft" 
+          : "lg:bg-transparent lg:py-6 lg:shadow-none"
       )}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
@@ -63,7 +66,7 @@ export const Header = () => {
           <div className="w-8 h-8 bg-brand-black flex items-center justify-center overflow-hidden">
             <span className="text-brand-white font-display font-bold text-xl leading-none group-hover:scale-110 transition-transform">S</span>
           </div>
-          <span className="font-display font-bold text-xl tracking-tighter uppercase hidden sm:block">Sole & Style</span>
+          <span className="font-display font-bold text-lg sm:text-xl tracking-tighter uppercase whitespace-nowrap">Sole & Style</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -84,7 +87,7 @@ export const Header = () => {
         <div className="flex items-center gap-4 sm:gap-6">
           <button 
             onClick={() => setIsSearchOpen(true)}
-            className="p-2 hover:bg-brand-gray-100 rounded-full transition-colors hidden sm:block"
+            className="p-2 hover:bg-brand-gray-100 rounded-full transition-colors"
           >
             <Search className="w-5 h-5" />
           </button>
